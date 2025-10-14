@@ -1,13 +1,36 @@
 const User = require('../models/User');
 const GamificationService = require('../services/gamificationService');
+const jwt = require('jsonwebtoken');
+
+// Generate JWT token
+const generateToken = (id) => {
+  return jwt.sign({ id }, process.env.JWT_SECRET, {
+    expiresIn: '30d',
+  });
+};
 
 // WhatsApp authentication initiation
 const initiateWhatsAppAuth = async (req, res) => {
   try {
-    const { phoneNumber } = req.body;
+    const { phone, profileType, name } = req.body;
     
-    if (!phoneNumber) {
+    if (!phone) {
       return res.status(400).json({ error: 'Phone number is required' });
+    }
+
+    let user = await User.findOne({ phoneNumber: phone });
+
+    if (user) {
+      user.profileType = profileType || user.profileType;
+      user.name = name || user.name;
+      await user.save();
+    } else {
+      user = new User({
+        phoneNumber: phone,
+        profileType: profileType || 'mum',
+        name,
+      });
+      await user.save();
     }
     
     // TODO: Implement your WhatsApp verification code sending logic here
@@ -26,59 +49,15 @@ const initiateWhatsAppAuth = async (req, res) => {
 // WhatsApp code verification
 const verifyWhatsAppCode = async (req, res) => {
   try {
-    const { phoneNumber, code, profileType } = req.body;
+    const { phone, code } = req.body;
     
-    if (!phoneNumber || !code) {
+    if (!phone || !code) {
       return res.status(400).json({ error: 'Phone number and code are required' });
     }
     
     // TODO: Verify the code (implement your verification logic)
     
-    // Find or create user
-    let user = await User.findOne({ phoneNumber });
-    
-    if (!user) {
-      user = new User({
-        phoneNumber,
-        profileType: profileType || 'mum'
-      });
-      await user.save();
-    }
-    
-    // Check for first login & award achievement
-    const isFirstLogin = !user.gamification.lastLogin;
-    
-    user.gamification.lastLogin = new Date();
-    await user.save();
-    
-    let newAchievement = null;
-    if (isFirstLogin) {
-      newAchievement = await GamificationService.handleFirstLogin(user);
-      console.log(`🎉 First login reward awarded: ${newAchievement?.points} points`);
-    }
-    
-    res.json({
-      success: true,
-      user: {
-        id: user._id,
-        phoneNumber: user.phoneNumber,
-        profileType: user.profileType,
-        gamification: user.gamification
-      },
-      newAchievement: newAchievement
-    });
-    
-  } catch (error) {
-    res.status(500).json({ error: error.message });
-  }
-};
-
-// Login user function
-const loginUser = async (req, res) => {
-  try {
-    const { userId } = req.body;
-    
-    const user = await User.findById(userId);
+    const user = await User.findOne({ phoneNumber: phone });
     
     if (!user) {
       return res.status(404).json({ error: 'User not found' });
@@ -87,25 +66,26 @@ const loginUser = async (req, res) => {
     // Check for first login & award achievement
     const isFirstLogin = !user.gamification.lastLogin;
     
-    // Update last login
     user.gamification.lastLogin = new Date();
     await user.save();
     
     let newAchievement = null;
     if (isFirstLogin) {
       newAchievement = await GamificationService.handleFirstLogin(user);
-      console.log(`🎉 First login reward awarded: ${newAchievement?.points} points`);
     }
     
+    const token = generateToken(user._id);
+
     res.json({
-      success: true,
+      token,
       user: {
         id: user._id,
+        name: user.name,
         phoneNumber: user.phoneNumber,
         profileType: user.profileType,
         gamification: user.gamification
       },
-      newAchievement: newAchievement
+      newAchievement
     });
     
   } catch (error) {
@@ -113,9 +93,18 @@ const loginUser = async (req, res) => {
   }
 };
 
+const verifyToken = async (req, res) => {
+  try {
+    const user = await User.findById(req.user.id).select('-password');
+    res.json({ user });
+  } catch (error) {
+    res.status(500).json({ error: 'Server error' });
+  }
+}
+
 // EXPORT ALL FUNCTIONS
 module.exports = {
   initiateWhatsAppAuth,
   verifyWhatsAppCode,
-  loginUser
+  verifyToken
 };
