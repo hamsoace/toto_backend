@@ -45,6 +45,7 @@ app.use('/api/v1/vaccinations', require('./routes/vaccinationRoutes'));
 app.use('/api/v1/milestones', require('./routes/milestoneRoutes'));
 app.use('/api/v1/checklists', require('./routes/checklistRoutes'));
 app.use('/api/v1/chp', require('./routes/chpRoutes'));
+app.use('/api/v1/analytics', require('./routes/analyticsRoutes.js'));
 
 // Health check
 app.get('/api/health', (req, res) => {
