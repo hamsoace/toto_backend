@@ -1,3 +1,4 @@
+// controllers/analyticsController.js
 import Analytics from '../models/Analytics.js'; 
 import asyncHandler from 'express-async-handler';
 
@@ -30,4 +31,9 @@ export const recordInstall = asyncHandler(async (req, res) => {
   });
 
   res.status(200).json({ success: true, message: 'Install recorded' });
+});
+
+export const getAnalytics = asyncHandler(async (req, res) => {
+  const analytics = await Analytics.find().sort({ timestamp: -1 });
+  res.status(200).json({ success: true, data: analytics });
 });
