@@ -9,11 +9,11 @@ const generateToken = (id) => {
   });
 };
 
-// WhatsApp authentication initiation
+// WhatsApp authentication initiation (now a direct login)
 const initiateWhatsAppAuth = async (req, res) => {
   try {
     const { phone, profileType, name } = req.body;
-    
+
     if (!phone) {
       return res.status(400).json({ error: 'Phone number is required' });
     }
@@ -23,57 +23,24 @@ const initiateWhatsAppAuth = async (req, res) => {
     if (user) {
       user.profileType = profileType || user.profileType;
       user.name = name || user.name;
-      await user.save();
     } else {
       user = new User({
         phoneNumber: phone,
         profileType: profileType || 'mum',
         name,
       });
-      await user.save();
     }
-    
-    // TODO: Implement your WhatsApp verification code sending logic here
-    // For now, we'll just return success
-    
-    res.json({
-      success: true,
-      message: 'Verification code sent to WhatsApp'
-    });
-    
-  } catch (error) {
-    res.status(500).json({ error: error.message });
-  }
-};
 
-// WhatsApp code verification
-const verifyWhatsAppCode = async (req, res) => {
-  try {
-    const { phone, code } = req.body;
-    
-    if (!phone || !code) {
-      return res.status(400).json({ error: 'Phone number and code are required' });
-    }
-    
-    // TODO: Verify the code (implement your verification logic)
-    
-    const user = await User.findOne({ phoneNumber: phone });
-    
-    if (!user) {
-      return res.status(404).json({ error: 'User not found' });
-    }
-    
     // Check for first login & award achievement
     const isFirstLogin = !user.gamification.lastLogin;
-    
     user.gamification.lastLogin = new Date();
     await user.save();
-    
+
     let newAchievement = null;
     if (isFirstLogin) {
       newAchievement = await GamificationService.handleFirstLogin(user);
     }
-    
+
     const token = generateToken(user._id);
 
     res.json({
@@ -83,14 +50,20 @@ const verifyWhatsAppCode = async (req, res) => {
         name: user.name,
         phoneNumber: user.phoneNumber,
         profileType: user.profileType,
-        gamification: user.gamification
+        gamification: user.gamification,
       },
-      newAchievement
+      newAchievement,
     });
-    
   } catch (error) {
     res.status(500).json({ error: error.message });
   }
+};
+
+// WhatsApp code verification (can be restored later)
+const verifyWhatsAppCode = async (req, res) => {
+  // This logic is temporarily bypassed.
+  // You can re-implement the code verification flow here when ready.
+  res.json({ success: true, message: 'Verification step is currently bypassed.' });
 };
 
 const verifyToken = async (req, res) => {
@@ -100,11 +73,10 @@ const verifyToken = async (req, res) => {
   } catch (error) {
     res.status(500).json({ error: 'Server error' });
   }
-}
+};
 
-// EXPORT ALL FUNCTIONS
 module.exports = {
   initiateWhatsAppAuth,
   verifyWhatsAppCode,
-  verifyToken
+  verifyToken,
 };
