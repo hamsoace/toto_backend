@@ -1,4 +1,4 @@
-const { achievements } = require('../../shared/gamification/achievements');
+const { achievements } = require('../shared/gamification/achievements');
 
 class GamificationService {
   static async awardAchievement(user, achievementKey) {

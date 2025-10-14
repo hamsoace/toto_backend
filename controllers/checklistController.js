@@ -1,5 +1,5 @@
 const Checklist = require('../models/Checklist');
-const { PPD_CHECKLIST, PARTNER_CHECKLIST } = require('../../shared/constants');
+const { PPD_CHECKLIST, PARTNER_CHECKLIST } = require('../shared/constants');
 
 // Submit PPD Self-Checklist
 exports.submitPPDChecklist = async (req, res) => {

@@ -1,5 +1,5 @@
 const Baby = require('../models/Baby');
-const { VACCINATION_SCHEDULE } = require('../../shared/constants');
+const { VACCINATION_SCHEDULE } = require('../shared/constants');
 const GamificationService = require('../services/gamificationService');
 const User = require('../models/User');
 
