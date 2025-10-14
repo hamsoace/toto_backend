@@ -1,7 +1,7 @@
-import mongoose from 'mongoose';
+const mongoose = require('mongoose');
 
 const analyticsSchema = new mongoose.Schema({
-  event: { type: String, required: true }, // 'visit' | 'install'
+  event: { type: String, required: true },
   userId: { type: String },
   page: { type: String },
   device: { type: String },
@@ -9,4 +9,4 @@ const analyticsSchema = new mongoose.Schema({
   timestamp: { type: Date, default: Date.now }
 });
 
-export default mongoose.model('Analytics', analyticsSchema);
+module.exports = mongoose.model('Analytics', analyticsSchema);
