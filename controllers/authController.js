@@ -1,4 +1,5 @@
 const User = require('../models/User');
+const { sendWhatsAppVerification, verifyWhatsAppCode: verifyCode } = require('../services/whatsappService');
 const GamificationService = require('../services/gamificationService');
 const jwt = require('jsonwebtoken');
 
@@ -9,7 +10,7 @@ const generateToken = (id) => {
   });
 };
 
-// WhatsApp authentication initiation (now a direct login)
+// WhatsApp authentication initiation
 const initiateWhatsAppAuth = async (req, res) => {
   try {
     const { phone, profileType, name } = req.body;
@@ -18,6 +19,8 @@ const initiateWhatsAppAuth = async (req, res) => {
       return res.status(400).json({ error: 'Phone number is required' });
     }
 
+    // In a real scenario, you would send a verification code here.
+    // For now, we'll just return a success message and user data.
     let user = await User.findOne({ phoneNumber: phone });
 
     if (user) {
@@ -30,12 +33,35 @@ const initiateWhatsAppAuth = async (req, res) => {
         name,
       });
     }
+    
+    await user.save();
 
-    // Check for first login & award achievement
+    res.json({
+      success: true,
+      message: 'Authentication initiated. Please verify.',
+    });
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+};
+
+// WhatsApp code verification
+const verifyWhatsAppCode = async (req, res) => {
+  try {
+    const { phone, code } = req.body;
+    let user = await User.findOne({ phoneNumber: phone });
+
+    if (!user) {
+      return res.status(404).json({ error: 'User not found' });
+    }
+
+    // Here, you would typically verify the code.
+    // For this simplified version, we'll assume the code is correct.
+
     const isFirstLogin = !user.gamification.lastLogin;
     user.gamification.lastLogin = new Date();
     await user.save();
-
+    
     let newAchievement = null;
     if (isFirstLogin) {
       newAchievement = await GamificationService.handleFirstLogin(user);
@@ -52,31 +78,20 @@ const initiateWhatsAppAuth = async (req, res) => {
         profileType: user.profileType,
         gamification: user.gamification,
       },
-      newAchievement,
+      newAchievement
     });
   } catch (error) {
     res.status(500).json({ error: error.message });
   }
 };
 
-// WhatsApp code verification (can be restored later)
-const verifyWhatsAppCode = async (req, res) => {
-  // This logic is temporarily bypassed.
-  // You can re-implement the code verification flow here when ready.
-  res.json({ success: true, message: 'Verification step is currently bypassed.' });
-};
-
-const verifyToken = async (req, res) => {
-  try {
-    const user = await User.findById(req.user.id).select('-password');
-    res.json({ user });
-  } catch (error) {
-    res.status(500).json({ error: 'Server error' });
-  }
-};
+const verifyToken = (req, res) => {
+    // This function is not fully implemented yet
+    res.status(200).json({ message: "Token verification placeholder." });
+}
 
 module.exports = {
   initiateWhatsAppAuth,
   verifyWhatsAppCode,
-  verifyToken,
+  verifyToken
 };

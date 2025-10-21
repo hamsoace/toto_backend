@@ -25,7 +25,8 @@ const corsOptions = {
     const allowedOrigins = [
       'http://localhost:3000',
       'http://localhost:5173',
-      'https://toto-gilt-phi.vercel.app'
+      'https://toto-gilt-phi.vercel.app',
+      'https://3000-firebase-document-from-amilo-1760436416597.cluster-lu4mup47g5gm4rtyvhzpwbfadi.cloudworkstations.dev'
     ];
     
     // Allow requests with no origin (like mobile apps, Postman, curl)
@@ -70,6 +71,9 @@ app.use('/api/v1/milestones', require('./routes/milestoneRoutes'));
 app.use('/api/v1/checklists', require('./routes/checklistRoutes'));
 app.use('/api/v1/chp', require('./routes/chpRoutes'));
 app.use('/api/v1/analytics', require('./routes/analyticsRoutes'));
+app.use('/api/v1/feeding-logs', require('./routes/feedingLogRoutes'));
+app.use('/api/v1/tasks', require('./routes/taskRoutes'));
+
 
 // Health check
 app.get('/api/health', (req, res) => {
@@ -85,7 +89,7 @@ app.get('/api/health', (req, res) => {
 app.all('*', (req, res) => {
   res.status(404).json({
     status: 'fail',
-    message: `Can't find ${req.originalUrl} on this server!`
+    message: `Can\'t find ${req.originalUrl} on this server!`
   });
 });
 
