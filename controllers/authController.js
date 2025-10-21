@@ -1,5 +1,4 @@
 const User = require('../models/User');
-const { sendWhatsAppVerification, verifyWhatsAppCode: verifyCode } = require('../services/whatsappService');
 const GamificationService = require('../services/gamificationService');
 const jwt = require('jsonwebtoken');
 
