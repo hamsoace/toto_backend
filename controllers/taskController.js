@@ -1,6 +1,6 @@
 const Task = require('../models/Task');
 
-exports.getTasks = async (req, res) => {
+const getTasks = async (req, res) => {
   try {
     const tasks = await Task.find({ user: req.user.id });
     res.json(tasks);
@@ -10,7 +10,7 @@ exports.getTasks = async (req, res) => {
   }
 };
 
-exports.createTask = async (req, res) => {
+const createTask = async (req, res) => {
   const { description } = req.body;
 
   try {
@@ -27,7 +27,7 @@ exports.createTask = async (req, res) => {
   }
 };
 
-exports.updateTask = async (req, res) => {
+const updateTask = async (req, res) => {
   const { description, isCompleted } = req.body;
 
   try {
@@ -48,7 +48,7 @@ exports.updateTask = async (req, res) => {
   }
 };
 
-exports.deleteTask = async (req, res) => {
+const deleteTask = async (req, res) => {
   try {
     const task = await Task.findOne({ _id: req.params.id, user: req.user.id });
 
@@ -64,3 +64,10 @@ exports.deleteTask = async (req, res) => {
     res.status(500).send('Server Error');
   }
 };
+
+module.exports = {
+    getTasks,
+    createTask,
+    updateTask,
+    deleteTask
+}
