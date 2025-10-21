@@ -95,13 +95,19 @@ app.all('*', (req, res) => {
 
 // Global error handler
 app.use((err, req, res, next) => {
+  console.error('Error:', err);
+  console.error('Request body:', req.body);
+  
   err.statusCode = err.statusCode || 500;
   err.status = err.status || 'error';
 
   res.status(err.statusCode).json({
     status: err.status,
     message: err.message,
-    ...(process.env.NODE_ENV === 'development' && { stack: err.stack })
+    ...(process.env.NODE_ENV === 'development' && { 
+      stack: err.stack,
+      body: req.body 
+    })
   });
 });
 

@@ -9,38 +9,61 @@ const generateToken = (id) => {
   });
 };
 
-// WhatsApp authentication initiation
 const initiateWhatsAppAuth = async (req, res) => {
   try {
-    const { phone, profileType, name } = req.body;
+    const { phone, phoneNumber, profileType, name, babyName, babyDateOfBirth } = req.body;
 
-    if (!phone) {
-      return res.status(400).json({ error: 'Phone number is required' });
+    // Accept both 'phone' and 'phoneNumber' for flexibility
+    const userPhone = phone || phoneNumber;
+
+    if (!userPhone) {
+      return res.status(400).json({ 
+        status: 'fail',
+        error: 'Phone number is required' 
+      });
     }
 
-    // In a real scenario, you would send a verification code here.
-    // For now, we'll just return a success message and user data.
-    let user = await User.findOne({ phoneNumber: phone });
+    // Validate phone format (basic validation)
+    const phoneRegex = /^\+?[\d\s-()]+$/;
+    if (!phoneRegex.test(userPhone)) {
+      return res.status(400).json({ 
+        status: 'fail',
+        error: 'Invalid phone number format' 
+      });
+    }
+
+    let user = await User.findOne({ phoneNumber: userPhone });
 
     if (user) {
-      user.profileType = profileType || user.profileType;
-      user.name = name || user.name;
+      // Update existing user
+      if (profileType) user.profileType = profileType;
+      if (name) user.name = name;
     } else {
+      // Create new user with only required fields
       user = new User({
-        phoneNumber: phone,
+        phoneNumber: userPhone,
         profileType: profileType || 'mum',
-        name,
+        name: name || 'User',
       });
     }
     
     await user.save();
 
-    res.json({
-      success: true,
+    res.status(200).json({
+      status: 'success',
       message: 'Authentication initiated. Please verify.',
+      data: {
+        userId: user._id,
+        phoneNumber: user.phoneNumber
+      }
     });
   } catch (error) {
-    res.status(500).json({ error: error.message });
+    console.error('Error in initiateWhatsAppAuth:', error);
+    res.status(500).json({ 
+      status: 'error',
+      error: error.message,
+      details: process.env.NODE_ENV === 'development' ? error.stack : undefined
+    });
   }
 };
 
