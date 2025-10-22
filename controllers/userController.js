@@ -199,8 +199,49 @@ const verifyToken = (req, res) => {
   });
 };
 
+const getProfile = async (req, res) => {
+  try {
+    const user = await User.findById(req.user.id).select('-password'); // Exclude password
+    if (!user) {
+      return res.status(404).json({ status: 'fail', error: 'User not found' });
+    }
+    res.status(200).json({ status: 'success', data: { user } });
+  } catch (error) {
+    console.error('Error in getProfile:', error);
+    res.status(500).json({ status: 'error', error: error.message });
+  }
+};
+
+// Update user profile
+const updateProfile = async (req, res) => {
+  try {
+    const { name, language } = req.body;
+    const user = await User.findById(req.user.id);
+
+    if (!user) {
+      return res.status(404).json({ status: 'fail', error: 'User not found' });
+    }
+
+    // Update fields if they are provided
+    if (name) user.name = name;
+    if (language) user.language = language;
+    
+    const updatedUser = await user.save();
+    
+    // Re-fetch user to get populated gamification details if any
+    const finalUser = await User.findById(req.user.id).select('-password');
+
+    res.status(200).json({ status: 'success', data: { user: finalUser } });
+  } catch (error) {
+    console.error('Error in updateProfile:', error);
+    res.status(500).json({ status: 'error', error: error.message });
+  }
+};
+
 module.exports = {
   initiateWhatsAppAuth,
   verifyWhatsAppCode,
-  verifyToken
+  verifyToken,
+  getProfile,
+  updateProfile
 };
