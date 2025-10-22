@@ -16,9 +16,6 @@ const initiateWhatsAppAuth = async (req, res) => {
 
     const { phone, phoneNumber, profileType, name, babyName, babyDateOfBirth } = req.body;
 
-    // Accept both 'phone' and 'phoneNumber'
-    const userPhone = phone || phoneNumber;
-
     // Validation
     if (!userPhone) {
       return res.status(400).json({ 
